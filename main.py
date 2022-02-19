@@ -38,6 +38,7 @@ currentDir = os.getcwd()
 
 c = pygame.time.Clock()
 running = True
+offset = 0
 while running:
 	currentFolders = getFolders(currentDir)
 	currentFiles = getFiles(currentDir)
@@ -52,13 +53,27 @@ while running:
 			pos /= FONTHEIGHT
 			pos -= 1
 			pos = floor(pos)
+			pos += offset
 			if pos == -1:
 				currentDir = currentDir[:currentDir.rfind("/")]
 			elif pos < len(currentFolders):
 				currentDir += "/" + currentFolders[pos]
 			elif pos < len(currentFiles) + len(currentFolders):
 				selectFile(currentDir + "/" + currentFiles[pos - len(currentFolders)])
+		elif event.type == pygame.KEYDOWN:
+			keys = pygame.key.get_pressed()
+			if keys[pygame.K_UP]:
+				if offset > 0: offset -= 1
+			elif keys[pygame.K_DOWN]: offset += 1
 	screen.fill(WHITE)
+	# DIRECTORY
+	pos = ((-offset) + 1) * FONTHEIGHT
+	for filename in currentFolders:
+		screen.blit(FONT.render(filename + " >", True, BLACK), (0, pos))
+		pos += FONTHEIGHT
+	for filename in currentFiles:
+		screen.blit(FONT.render(filename, True, GRAY), (0, pos))
+		pos += FONTHEIGHT
 	# HEADER
 	pygame.draw.rect(screen, BLACK, pygame.Rect(0, 0, SCREENSIZE[0], FONTHEIGHT))
 	screen.blit(FONT.render(currentDir + f" ({len(currentFolders) + len(currentFiles)} items)", True, WHITE), (FONTHEIGHT + 10, 0))
@@ -67,14 +82,6 @@ while running:
 	arrow.fill(BLACK)
 	pygame.draw.polygon(arrow, WHITE, ((10, 3), (5, 3), (5, 0), (0, 5), (5, 10), (5, 7), (10, 7)))
 	screen.blit(pygame.transform.scale(arrow, (FONTHEIGHT, FONTHEIGHT)), (0, 0))
-	# DIRECTORY
-	pos = FONTHEIGHT
-	for filename in currentFolders:
-		screen.blit(FONT.render(filename + " >", True, BLACK), (0, pos))
-		pos += FONTHEIGHT
-	for filename in currentFiles:
-		screen.blit(FONT.render(filename, True, GRAY), (0, pos))
-		pos += FONTHEIGHT
 	# FLIP
 	pygame.display.flip()
 	c.tick(60)
