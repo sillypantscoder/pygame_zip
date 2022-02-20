@@ -5,6 +5,7 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
 import zipHelpers
+from viewfile import viewfile
 
 pygame.init()
 pygame.font.init()
@@ -61,19 +62,9 @@ def getFolders(dir):
 	return r
 def selectFile(filename):
 	global modified
-	fileContents = rawItems[filename[1:]]
-	name = filename[filename.rfind("/") + 1:]
-	f = open("_unzipped_" + name, "wb")
-	f.write(fileContents)
-	f.close()
-	os.system(f"xdg-open '{'_unzipped_' + name}'")
-	f = open("_unzipped_" + name, "rb")
-	newFileContents = f.read()
-	rawItems[filename[1:]] = newFileContents
-	f.close()
+	fileContents, newFileContents = viewfile(filename, rawItems[filename[1:]])
 	if newFileContents != fileContents:
 		modified = True
-	os.system(f"rm '{'_unzipped_' + name}'")
 
 currentDir = ""
 
@@ -174,5 +165,7 @@ if save:
 			screen.fill(WHITE)
 			screen.blit(FONT.render(f"Saving items... {done}/{len(rawItems)} done", True, BLACK), (0, 0))
 			pygame.display.flip()
-	newFile.writetofile("new_zip.zip")
+	f = open(FILENAME, "wb")
+	f.write(newFile.read())
+	f.close()
 	print("save")

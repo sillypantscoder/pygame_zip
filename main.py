@@ -3,6 +3,7 @@ import pygame
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
+from viewfile import viewfile
 
 pygame.init()
 pygame.font.init()
@@ -32,7 +33,9 @@ def getFolders(dir):
 			r.append(n)
 	return r
 def selectFile(filename):
-	os.system(f"python3 unzip.py '{filename}'")
+	f = open(filename, "rb")
+	viewfile(filename, f.read())
+	f.close()
 
 currentDir = os.getcwd()
 
