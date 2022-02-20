@@ -59,7 +59,13 @@ def getFolders(dir):
 			if newDirName not in r: r.append(newDirName)
 	return r
 def selectFile(filename):
-	print(filename)
+	fileContents = rawItems[filename[1:]]
+	name = filename[filename.rfind("/") + 1:]
+	f = open("_unzipped_" + name, "wb")
+	f.write(fileContents)
+	f.close()
+	os.system(f"xdg-open '{'_unzipped_' + name}'")
+	os.system(f"rm '{'_unzipped_' + name}'")
 
 currentDir = ""
 
