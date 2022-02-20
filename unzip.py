@@ -21,6 +21,7 @@ if not FILENAME:
 	exit(1)
 screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
 rawItems = zipHelpers.extract_zip(FILENAME).items
+modified = False
 
 # SELECT FILE
 
@@ -59,12 +60,19 @@ def getFolders(dir):
 			if newDirName not in r: r.append(newDirName)
 	return r
 def selectFile(filename):
+	global modified
 	fileContents = rawItems[filename[1:]]
 	name = filename[filename.rfind("/") + 1:]
 	f = open("_unzipped_" + name, "wb")
 	f.write(fileContents)
 	f.close()
 	os.system(f"xdg-open '{'_unzipped_' + name}'")
+	f = open("_unzipped_" + name, "rb")
+	newFileContents = f.read()
+	rawItems[filename[1:]] = newFileContents
+	f.close()
+	if newFileContents != fileContents:
+		modified = True
 	os.system(f"rm '{'_unzipped_' + name}'")
 
 currentDir = ""
@@ -110,7 +118,10 @@ while running:
 	# HEADER
 	pygame.draw.rect(screen, BLACK, pygame.Rect(0, 0, SCREENSIZE[0], FONTHEIGHT))
 	f = FILENAME[FILENAME.rfind("/") + 1:]
-	screen.blit(FONT.render(f + currentDir + f" ({len(currentFolders) + len(currentFiles)} items)", True, WHITE), (FONTHEIGHT + 10, 0))
+	headerText = currentDir + f" ({len(currentFolders) + len(currentFiles)} items)"
+	if modified: headerText = "*" + headerText
+	headerText = f + headerText
+	screen.blit(FONT.render(headerText, True, WHITE), (FONTHEIGHT + 10, 0))
 	# arrow
 	arrow = pygame.Surface((10, 10))
 	arrow.fill(BLACK)
@@ -119,3 +130,49 @@ while running:
 	# FLIP
 	pygame.display.flip()
 	c.tick(60)
+
+# SAVING
+
+if modified:
+	running = True
+	save = False
+	while running:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+			elif event.type == pygame.VIDEORESIZE:
+				SCREENSIZE = [*event.dict["size"]]
+				screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
+			elif event.type == pygame.MOUSEBUTTONUP:
+				pos = pygame.mouse.get_pos()[1]
+				pos /= FONTHEIGHT
+				pos = floor(pos)
+				if floor(pygame.mouse.get_pos()[1] / FONTHEIGHT) == 1:
+					if (pygame.mouse.get_pos()[0] / SCREENSIZE[0]) < 0.5: save = True
+					running = False
+		screen.fill(WHITE)
+		# HEADER
+		pygame.draw.rect(screen, BLACK, pygame.Rect(0, 0, SCREENSIZE[0], FONTHEIGHT))
+		f = FILENAME[FILENAME.rfind("/") + 1:]
+		screen.blit(FONT.render("Save changes to " + f + "?", True, WHITE), (FONTHEIGHT + 10, 0))
+		# Yes
+		pygame.draw.rect(screen, BLACK, pygame.Rect(0, FONTHEIGHT + 10, SCREENSIZE[0] / 2, FONTHEIGHT))
+		f = FONT.render("Yes", True, WHITE)
+		screen.blit(f, ((SCREENSIZE[0] / 4) - (f.get_width() / 2), FONTHEIGHT + 10))
+		# No
+		f = FONT.render("No", True, BLACK)
+		screen.blit(f, ((SCREENSIZE[0] * 0.75) - (f.get_width() / 2), FONTHEIGHT + 10))
+		# FLIP
+		pygame.display.flip()
+		c.tick(60)
+if save:
+	done = 0
+	newFile = zipHelpers.InMemoryZip()
+	for i in rawItems:
+			newFile.append(i, rawItems[i])
+			done += 1
+			screen.fill(WHITE)
+			screen.blit(FONT.render(f"Saving items... {done}/{len(rawItems)} done", True, BLACK), (0, 0))
+			pygame.display.flip()
+	newFile.writetofile("new_zip.zip")
+	print("save")
