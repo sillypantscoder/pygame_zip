@@ -1,4 +1,5 @@
 import pygame
+import math
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -15,6 +16,7 @@ def dialog(msg, options=["OK"]):
 	# Loop
 	running = True
 	c = pygame.time.Clock()
+	option_width = (SCREENSIZE[0] - ((len(options) - 1) * 5)) / len(options)
 	while running:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -22,14 +24,26 @@ def dialog(msg, options=["OK"]):
 			elif event.type == pygame.VIDEORESIZE:
 				SCREENSIZE = [*event.dict["size"]]
 				screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
+			elif event.type == pygame.MOUSEBUTTONUP:
+				if pygame.mouse.get_pos()[1] < (SCREENSIZE[1] - msgHeight): continue
+				pos = pygame.mouse.get_pos()[0]
+				pos /= option_width
+				pos = math.floor(pos)
+				return options[pos]
 		screen.fill(WHITE)
 		screen.blit(msgRendered, ((SCREENSIZE[0] - msgWidth) / 2, ((SCREENSIZE[1] - msgHeight) - msgHeight) / 2))
 		# Options
-		option_width = (SCREENSIZE[0] / len(options)) - ((len(options) - 1) * 5)
+		option_width = SCREENSIZE[0] / len(options)
+		cum_x = 0
+		pygame.draw.rect(screen, BLACK, pygame.Rect(0, SCREENSIZE[1] - msgHeight, SCREENSIZE[0], msgHeight))
 		for o in options:
-			pygame.draw.rect(screen, BLACK, pygame.Rect(0, SCREENSIZE[1] - msgHeight, SCREENSIZE[0], msgHeight))
+			oRendered = FONT.render(o, True, WHITE)
+			screen.blit(oRendered, (cum_x + ((option_width - oRendered.get_width()) / 2), SCREENSIZE[1] - msgHeight))
+			cum_x += option_width
+			pygame.draw.line(screen, WHITE, (cum_x, SCREENSIZE[1] - msgHeight), (cum_x, SCREENSIZE[1]), 5)
 		# Flip
 		pygame.display.flip()
 		c.tick(60)
 	# End
 	pygame.quit()
+	return None
