@@ -51,17 +51,20 @@ while running:
 		elif event.type == pygame.VIDEORESIZE:
 			SCREENSIZE = [*event.dict["size"]]
 			screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
-		elif event.type == pygame.MOUSEBUTTONUP:
+		elif event.type == pygame.MOUSEBUTTONDOWN:
 			pos = pygame.mouse.get_pos()[1]
 			pos /= FONTHEIGHT
 			pos -= 1
 			pos = floor(pos)
 			pos += offset
 			if pos == -1:
+				# Clicked on header
 				currentDir = currentDir[:currentDir.rfind("/")]
 			elif pos < len(currentFolders):
+				# Clicked on a folder
 				currentDir += "/" + currentFolders[pos]
 			elif pos < len(currentFiles) + len(currentFolders):
+				# Clicked on a file
 				selectFile(currentDir + "/" + currentFiles[pos - len(currentFolders)])
 		elif event.type == pygame.KEYDOWN:
 			keys = pygame.key.get_pressed()

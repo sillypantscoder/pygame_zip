@@ -71,6 +71,8 @@ currentDir = ""
 c = pygame.time.Clock()
 running = True
 offset = 0
+ctxmenupos = None
+menuitems = []
 while running:
 	currentFolders = getFolders(currentDir)
 	currentFiles = getFiles(currentDir)
@@ -80,18 +82,57 @@ while running:
 		elif event.type == pygame.VIDEORESIZE:
 			SCREENSIZE = [*event.dict["size"]]
 			screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
-		elif event.type == pygame.MOUSEBUTTONUP:
-			pos = pygame.mouse.get_pos()[1]
-			pos /= FONTHEIGHT
-			pos -= 1
-			pos = floor(pos)
-			pos += offset
-			if pos == -1:
-				currentDir = currentDir[:currentDir.rfind("/")]
-			elif pos < len(currentFolders):
-				currentDir += "/" + currentFolders[pos]
-			elif pos < len(currentFiles) + len(currentFolders):
-				selectFile(currentDir + "/" + currentFiles[pos - len(currentFolders)])
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			if ctxmenupos:
+				cpos = pygame.mouse.get_pos()[1]
+				cpos -= ctxmenupos[1]
+				cpos /= FONTHEIGHT
+				cpos = floor(cpos)
+				if cpos < len(menuitems):
+					menuitems = []
+					pos = ctxmenupos[1]
+					pos /= FONTHEIGHT
+					pos -= 1
+					pos = floor(pos)
+					pos += offset
+					if pos == -1:
+						# Clicked on header
+						if cpos == 0: print("add file")
+						if cpos == 1: print("add subfolder")
+					elif pos < len(currentFolders):
+						# Clicked on a folder
+						if cpos == 0: print("Rename:", currentFolders[pos])
+						if cpos == 1: print("Delete:", currentFolders[pos])
+					elif pos < len(currentFiles) + len(currentFolders):
+						# Clicked on a file
+						if cpos == 0: print("Rename:", currentFiles[pos - len(currentFolders)])
+						if cpos == 1: print("Delete:", currentFiles[pos - len(currentFolders)])
+				ctxmenupos = None
+			else:
+				pos = pygame.mouse.get_pos()[1]
+				pos /= FONTHEIGHT
+				pos -= 1
+				pos = floor(pos)
+				pos += offset
+				buttons = pygame.mouse.get_pressed()
+				if pos == -1:
+					# Clicked on header
+					if buttons[0]: currentDir = currentDir[:currentDir.rfind("/")]
+					if buttons[2]:
+						# Right-clicked on header
+						ctxmenupos = (*pygame.mouse.get_pos(),)
+				elif pos < len(currentFolders):
+					# Clicked on a folder
+					if buttons[0]: currentDir += "/" + currentFolders[pos]
+					if buttons[2]:
+						# Right-clicked on a folder
+						ctxmenupos = (*pygame.mouse.get_pos(),)
+				elif pos < len(currentFiles) + len(currentFolders):
+					# Clicked on a file
+					if buttons[0]: selectFile(currentDir + "/" + currentFiles[pos - len(currentFolders)])
+					if buttons[2]:
+						# Right-clicked on a file
+						ctxmenupos = (*pygame.mouse.get_pos(),)
 		elif event.type == pygame.KEYDOWN:
 			keys = pygame.key.get_pressed()
 			if keys[pygame.K_UP]:
@@ -118,15 +159,44 @@ while running:
 	arrow.fill(BLACK)
 	pygame.draw.polygon(arrow, WHITE, ((10, 3), (5, 3), (5, 0), (0, 5), (5, 10), (5, 7), (10, 7)))
 	screen.blit(pygame.transform.scale(arrow, (FONTHEIGHT, FONTHEIGHT)), (0, 0))
+	# CONTEXT MENU
+	if ctxmenupos:
+		menuitems = []
+		pos = ctxmenupos[1]
+		pos /= FONTHEIGHT
+		pos -= 1
+		pos = floor(pos)
+		pos += offset
+		if pos == -1:
+			# Clicked on header
+			menuitems.append("Add file")
+			menuitems.append("Add subfolder")
+		elif pos < len(currentFolders):
+			# Clicked on a folder
+			menuitems.append("Rename")
+			menuitems.append("Delete")
+		elif pos < len(currentFiles) + len(currentFolders):
+			# Clicked on a file
+			menuitems.append("Rename")
+			menuitems.append("Delete")
+		width = 0
+		for i in menuitems:
+			r_i = FONT.render(i, True, BLACK)
+			if width < r_i.get_width(): width = r_i.get_width()
+		pygame.draw.rect(screen, GRAY, pygame.Rect(*ctxmenupos, width, len(menuitems)*FONTHEIGHT))
+		cum_y = 0
+		for i in menuitems:
+			screen.blit(FONT.render(i, True, BLACK), (ctxmenupos[0], ctxmenupos[1] + cum_y))
+			cum_y += FONTHEIGHT
 	# FLIP
 	pygame.display.flip()
 	c.tick(60)
 
 # SAVING
 
+save = False
 if modified:
 	running = True
-	save = False
 	while running:
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -168,4 +238,3 @@ if save:
 	f = open(FILENAME, "wb")
 	f.write(newFile.read())
 	f.close()
-	print("save")
