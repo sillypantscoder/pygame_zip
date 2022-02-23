@@ -6,6 +6,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
 import zipHelpers
 from viewfile import viewfile
+import dialog
 
 pygame.init()
 pygame.font.init()
@@ -101,12 +102,18 @@ while running:
 						if cpos == 1: print("add subfolder")
 					elif pos < len(currentFolders):
 						# Clicked on a folder
-						if cpos == 0: print("Rename:", currentFolders[pos])
-						if cpos == 1: print("Delete:", currentFolders[pos])
+						selectedItem = currentDir + "/" + currentFolders[pos]
+						if cpos == 0: print("Rename:", selectedItem)
+						if cpos == 1 and dialog.dialog(f"Are you sure you want to delete {selectedItem}?", ["OK", "Cancel"]) == "OK":
+							del rawItems[selectedItem]
+							modified = True
 					elif pos < len(currentFiles) + len(currentFolders):
 						# Clicked on a file
-						if cpos == 0: print("Rename:", currentFiles[pos - len(currentFolders)])
-						if cpos == 1: print("Delete:", currentFiles[pos - len(currentFolders)])
+						selectedItem = currentDir + "/" + currentFiles[pos - len(currentFolders)]
+						if cpos == 0: print("Rename:", selectedItem)
+						if cpos == 1 and dialog.dialog(f"Are you sure you want to delete {selectedItem}?", ["OK", "Cancel"]) == "OK":
+							del rawItems[selectedItem[1:]]
+							modified = True
 				ctxmenupos = None
 			else:
 				pos = pygame.mouse.get_pos()[1]

@@ -1,3 +1,3 @@
-from dialog import dialog
+import dialog
 
-dialog(dialog("Hi there", ["a", "b", "c", "d", "e", "f", "g"]))
+dialog.dialog(dialog.prompt("Hi there", "uh"))
