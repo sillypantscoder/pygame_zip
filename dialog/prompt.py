@@ -19,7 +19,6 @@ def finish(s):
 	f.close()
 	exit()
 
-pygame.init()
 pygame.font.init()
 FONT = pygame.font.Font(pygame.font.get_default_font(), 30)
 msgRendered = FONT.render(msg, True, BLACK)
@@ -51,6 +50,7 @@ while running:
 					if k in trans: k = "<>?:\"{|}_+"[trans.find(k)]
 				userText += k
 			if keys[pygame.K_BACKSPACE]: userText = userText[:-1]
+			if keys[pygame.K_RETURN]: finish(userText)
 		elif event.type == pygame.MOUSEBUTTONUP:
 			if pygame.mouse.get_pos()[1] < (SCREENSIZE[1] - msgHeight): continue
 			finish(userText)

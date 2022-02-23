@@ -8,7 +8,6 @@ import zipHelpers
 from viewfile import viewfile
 import dialog
 
-pygame.init()
 pygame.font.init()
 
 WHITE = (255, 255, 255)
@@ -23,6 +22,7 @@ if not FILENAME:
 	exit(1)
 screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
 rawItems = zipHelpers.extract_zip(FILENAME).items
+originalRawItems = zipHelpers.extract_zip(FILENAME).items
 modified = False
 
 # SELECT FILE
@@ -64,8 +64,22 @@ def getFolders(dir):
 def selectFile(filename):
 	global modified
 	fileContents, newFileContents = viewfile(filename, rawItems[filename[1:]])
-	if newFileContents != fileContents:
-		modified = True
+	rawItems[filename[1:]] = newFileContents
+
+def save():
+	global originalRawItems
+	done = 0
+	newFile = zipHelpers.InMemoryZip()
+	for i in rawItems:
+		newFile.append(i, rawItems[i])
+		done += 1
+		screen.fill(WHITE)
+		screen.blit(FONT.render(f"Saving items... {done}/{len(rawItems)} done", True, BLACK), (0, 0))
+		pygame.display.flip()
+	f = open(FILENAME, "wb")
+	f.write(newFile.read())
+	f.close()
+	originalRawItems = zipHelpers.extract_zip(FILENAME).items
 
 currentDir = ""
 
@@ -98,22 +112,22 @@ while running:
 					pos += offset
 					if pos == -1:
 						# Clicked on header
-						if cpos == 0: print("add file")
-						if cpos == 1: print("add subfolder")
+						if cpos == 0:
+							rawItems[currentDir[1:] + "/" + dialog.prompt("New file name")] = b""
+						if cpos == 1:
+							rawItems[currentDir[1:] + "/" + dialog.prompt("New folder name") + "/"] = b""
 					elif pos < len(currentFolders):
 						# Clicked on a folder
 						selectedItem = currentDir + "/" + currentFolders[pos]
 						if cpos == 0: print("Rename:", selectedItem)
 						if cpos == 1 and dialog.dialog(f"Are you sure you want to delete {selectedItem}?", ["OK", "Cancel"]) == "OK":
-							del rawItems[selectedItem]
-							modified = True
+							del rawItems[selectedItem[1:] + "/"]
 					elif pos < len(currentFiles) + len(currentFolders):
 						# Clicked on a file
 						selectedItem = currentDir + "/" + currentFiles[pos - len(currentFolders)]
 						if cpos == 0: print("Rename:", selectedItem)
 						if cpos == 1 and dialog.dialog(f"Are you sure you want to delete {selectedItem}?", ["OK", "Cancel"]) == "OK":
 							del rawItems[selectedItem[1:]]
-							modified = True
 				ctxmenupos = None
 			else:
 				pos = pygame.mouse.get_pos()[1]
@@ -145,6 +159,15 @@ while running:
 			if keys[pygame.K_UP]:
 				if offset > 0: offset -= 1
 			elif keys[pygame.K_DOWN]: offset += 1
+			if keys[pygame.K_s]:
+				if pygame.key.get_mods() & pygame.KMOD_CTRL:
+					save()
+		elif event.type == pygame.DROPFILE:
+			path = event.file
+			if dialog.dialog("Add " + path[path.rfind("/") + 1:], ["Add", "Cancel"]) == "Add":
+				f = open(path, "rb")
+				rawItems[currentDir + path[path.rfind("/") + 1:]] = f.read()
+				f.close()
 	screen.fill(WHITE)
 	# DIRECTORY
 	pos = ((-offset) + 1) * FONTHEIGHT
@@ -154,6 +177,8 @@ while running:
 	for filename in currentFiles:
 		screen.blit(FONT.render(filename, True, GRAY), (0, pos))
 		pos += FONTHEIGHT
+	# MODIFICATIONS
+	modified = rawItems != originalRawItems
 	# HEADER
 	pygame.draw.rect(screen, BLACK, pygame.Rect(0, 0, SCREENSIZE[0], FONTHEIGHT))
 	f = FILENAME[FILENAME.rfind("/") + 1:]
@@ -201,7 +226,7 @@ while running:
 
 # SAVING
 
-save = False
+do_save = False
 if modified:
 	running = True
 	while running:
@@ -233,15 +258,5 @@ if modified:
 		# FLIP
 		pygame.display.flip()
 		c.tick(60)
-if save:
-	done = 0
-	newFile = zipHelpers.InMemoryZip()
-	for i in rawItems:
-			newFile.append(i, rawItems[i])
-			done += 1
-			screen.fill(WHITE)
-			screen.blit(FONT.render(f"Saving items... {done}/{len(rawItems)} done", True, BLACK), (0, 0))
-			pygame.display.flip()
-	f = open(FILENAME, "wb")
-	f.write(newFile.read())
-	f.close()
+if do_save:
+	save()

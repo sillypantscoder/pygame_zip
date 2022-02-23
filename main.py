@@ -4,8 +4,9 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
 from viewfile import viewfile
+import dialog
 
-pygame.init()
+#pygame.init()
 pygame.font.init()
 
 WHITE = (255, 255, 255)
@@ -34,7 +35,10 @@ def getFolders(dir):
 	return r
 def selectFile(filename):
 	f = open(filename, "rb")
-	viewfile(filename, f.read())
+	fileContents, newFileContents = viewfile(filename, f.read())
+	f.close()
+	f = open(filename, "wb")
+	f.write(newFileContents)
 	f.close()
 
 currentDir = os.getcwd()
@@ -71,6 +75,9 @@ while running:
 			if keys[pygame.K_UP]:
 				if offset > 0: offset -= 1
 			elif keys[pygame.K_DOWN]: offset += 1
+		if event.type == pygame.DROPFILE:
+			path = event.file
+			selectFile(path)
 	screen.fill(WHITE)
 	# DIRECTORY
 	pos = ((-offset) + 1) * FONTHEIGHT

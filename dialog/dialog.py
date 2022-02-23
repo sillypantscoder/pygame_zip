@@ -19,7 +19,6 @@ def finish(s):
 	f.close()
 	exit()
 
-pygame.init()
 pygame.font.init()
 FONT = pygame.font.Font(pygame.font.get_default_font(), 30)
 msgRendered = FONT.render(msg, True, BLACK)
