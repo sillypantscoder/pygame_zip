@@ -1,5 +1,7 @@
 import pygame
 import math
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -29,6 +31,7 @@ cursorTicks = 0
 # Loop
 running = True
 c = pygame.time.Clock()
+pygame.key.set_repeat(500, 30)
 while running:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
@@ -38,10 +41,14 @@ while running:
 			screen = pygame.display.set_mode(SCREENSIZE, pygame.RESIZABLE)
 		elif event.type == pygame.KEYDOWN:
 			keys = pygame.key.get_pressed()
-			letterchars = [ord(char) for char in "abcdefghijklmnopqrstuvwxyz "]
+			letterchars = [ord(char) for char in "abcdefghijklmnopqrstuvwxyz 1234567890.,/;'[]\\-="]
 			if event.key in letterchars:
 				k = chr(event.key)
-				if pygame.key.get_mods() & pygame.KMOD_SHIFT: k = k.upper()
+				if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+					k = k.upper()
+					if k in "0123456789": k = ")!@#$%^&*("[int(k)]
+					trans = ",./;'[\]-="
+					if k in trans: k = "<>?:\"{|}_+"[trans.find(k)]
 				userText += k
 			if keys[pygame.K_BACKSPACE]: userText = userText[:-1]
 		elif event.type == pygame.MOUSEBUTTONUP:

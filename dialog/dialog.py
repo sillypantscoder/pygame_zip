@@ -1,5 +1,7 @@
 import pygame
 import math
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
