@@ -9,6 +9,8 @@ def viewfile(filename: str, fileContents: bytes):
 	# Open file
 	if filename.endswith(".zip"):
 		os.system(f"python3 unzip.py '{'_unzipped_' + name}'")
+	elif filename.endswith(".py"):
+		os.system(f"code --wait '{'_unzipped_' + name}'")
 	else:
 		os.system(f"xdg-open '{'_unzipped_' + name}'")
 	# Get new file contents

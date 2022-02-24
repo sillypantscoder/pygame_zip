@@ -226,7 +226,6 @@ while running:
 
 # SAVING
 
-do_save = False
 if modified:
 	running = True
 	while running:
@@ -241,7 +240,7 @@ if modified:
 				pos /= FONTHEIGHT
 				pos = floor(pos)
 				if floor(pygame.mouse.get_pos()[1] / FONTHEIGHT) == 1:
-					if (pygame.mouse.get_pos()[0] / SCREENSIZE[0]) < 0.5: save = True
+					if (pygame.mouse.get_pos()[0] / SCREENSIZE[0]) < 0.5: save()
 					running = False
 		screen.fill(WHITE)
 		# HEADER
@@ -258,5 +257,3 @@ if modified:
 		# FLIP
 		pygame.display.flip()
 		c.tick(60)
-if do_save:
-	save()
