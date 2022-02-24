@@ -113,7 +113,7 @@ while running:
 					if pos == -1:
 						# Clicked on header
 						if cpos == 0:
-							rawItems[currentDir[1:] + "/" + dialog.prompt("New file name")] = b""
+							rawItems[(currentDir[1:] + "/" + dialog.prompt("New file name"))[1:]] = b""
 						if cpos == 1:
 							rawItems[currentDir[1:] + "/" + dialog.prompt("New folder name") + "/"] = b""
 					elif pos < len(currentFolders):
