@@ -1,22 +1,27 @@
 import os
 
-def viewfile(filename: str, fileContents: bytes):
-	# Write file
+def viewfile(filename: str, fileContents: bytes, preserve_filename=False):
+	# Find destination filename
 	name = filename[filename.rfind("/") + 1:]
-	f = open("_unzipped_" + name, "wb")
+	if preserve_filename: target = filename
+	else: target = os.getcwd() + "/" + "_unzipped_" + name
+	# Write file
+	f = open(target, "wb")
 	f.write(fileContents)
 	f.close()
 	# Open file
 	if filename.endswith(".zip"):
-		os.system(f"python3 unzip.py '{'_unzipped_' + name}'")
-	elif filename.endswith(".py"):
-		os.system(f"code --wait '{'_unzipped_' + name}'")
+		os.system(f"python3 unzip.py '{target}'")
 	else:
-		os.system(f"xdg-open '{'_unzipped_' + name}'")
+		# Always use VS Code
+		# to disable, replace this line
+		# with "input()" so you can edit
+		# the file elsewhere
+		os.system(f"code --wait '{target}'")
 	# Get new file contents
-	f = open("_unzipped_" + name, "rb")
+	f = open(target, "rb")
 	newFileContents = f.read()
 	f.close()
 	# And delete file
-	os.system(f"rm '{'_unzipped_' + name}'")
+	os.system(f"rm '{target}'")
 	return [fileContents, newFileContents]

@@ -35,7 +35,7 @@ def getFolders(dir):
 	return r
 def selectFile(filename):
 	f = open(filename, "rb")
-	fileContents, newFileContents = viewfile(filename, f.read())
+	fileContents, newFileContents = viewfile(filename, f.read(), preserve_filename=True)
 	f.close()
 	f = open(filename, "wb")
 	f.write(newFileContents)
